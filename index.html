@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Colors</title>
+</head>
+<body>
+    <h1>GitHub Colors</h1>
+    <div>
+        <label for="tokenInput">GitHub Personal Access Token:</label>
+        <input type="text" id="tokenInput" placeholder="Enter your token">
+    </div>
+    <button onclick="pushToGitHub()">Push Colors to GitHub</button>
+
+    <script>
+        async function pushToGitHub() {
+            const colorsUrl = 'https://timmit147.github.io/jsonsheet/colors.json'; // URL of the colors.json file
+            const githubToken = document.getElementById('tokenInput').value.trim(); // Get token from input field
+
+            if (!githubToken) {
+                alert('Please enter your GitHub token.');
+                return;
+            }
+
+            try {
+                const response = await fetch(colorsUrl);
+                const colors = await response.json();
+
+                const updatedColors = [...colors, { color: "white", value: "#fff" }]; // Example: adding a new color
+
+                const updateUrl = `https://api.github.com/repos/your_username/your_repository/contents/colors.json`; // Replace with your GitHub repository and file path
+
+                const updateResponse = await fetch(updateUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Update colors.json',
+                        content: btoa(JSON.stringify(updatedColors, null, 2)), // Base64 encode the updated content
+                        sha: '', // SHA of the file if updating an existing file, leave empty if creating new
+                        branch: 'main' // Branch name
+                    })
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Failed to update colors.json');
+                }
+
+                const result = await updateResponse.json();
+                console.log('File updated successfully:', result);
+                alert('Colors updated successfully!');
+            } catch (error) {
+                console.error('Error updating colors:', error);
+                alert('Error updating colors: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
