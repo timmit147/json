@@ -30,5 +30,9 @@
   {
     "color": "white",
     "value": "#fff"
+  },
+  {
+    "color": "Custom Color",
+    "value": "#dede29"
   }
 ]
