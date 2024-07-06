@@ -24,14 +24,29 @@
             }
 
             try {
-                // Fetch current colors.json content from GitHub repository
+                // Step 1: Fetch current colors.json content from GitHub repository
                 const response = await fetch(colorsUrl);
                 const colors = await response.json();
 
                 // Example: Modify or update colors array
                 const updatedColors = [...colors, { color: "white", value: "#fff" }];
 
-                // Prepare update request to push updated content back to GitHub repository
+                // Step 2: Fetch SHA of the current colors.json file
+                const shaResponse = await fetch(`https://api.github.com/repos/timmit147/json/contents/colors.json`, {
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!shaResponse.ok) {
+                    throw new Error('Failed to fetch SHA of colors.json');
+                }
+
+                const shaData = await shaResponse.json();
+                const sha = shaData.sha; // SHA of the current colors.json file
+
+                // Step 3: Prepare update request to push updated content back to GitHub repository
                 const updateUrl = `https://api.github.com/repos/timmit147/json/contents/colors.json`; // GitHub repository path for colors.json
                 const updateResponse = await fetch(updateUrl, {
                     method: 'PUT',
@@ -44,13 +59,12 @@
                         message: 'Update colors.json',
                         content: btoa(JSON.stringify(updatedColors, null, 2)), // Base64 encode the updated content
                         branch: 'main', // Branch name
-                        sha: colors.sha // SHA of the file from the fetched response
+                        sha: sha // SHA of the file from GitHub API response
                     })
                 });
 
                 if (!updateResponse.ok) {
-                    const errorResponse = await updateResponse.json();
-                    throw new Error(`Failed to update colors.json: ${JSON.stringify(errorResponse)}`);
+                    throw new Error('Failed to update colors.json');
                 }
 
                 const result = await updateResponse.json();
