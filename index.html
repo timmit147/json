@@ -15,7 +15,7 @@
 
     <script>
         async function pushToGitHub() {
-            const colorsUrl = 'https://timmit147.github.io/json/colors.json'; // URL of the colors.json file on GitHub Pages
+            const colorsUrl = 'https://raw.githubusercontent.com/timmit147/json/main/colors.json'; // URL of the colors.json file in the raw format
             const githubToken = document.getElementById('tokenInput').value.trim(); // Get token from input field
 
             if (!githubToken) {
@@ -24,7 +24,7 @@
             }
 
             try {
-                // Fetch current colors.json content from GitHub Pages
+                // Fetch current colors.json content from GitHub repository
                 const response = await fetch(colorsUrl);
                 const colors = await response.json();
 
@@ -32,7 +32,7 @@
                 const updatedColors = [...colors, { color: "white", value: "#fff" }];
 
                 // Prepare update request to push updated content back to GitHub repository
-                const updateUrl = `https://api.github.com/repos/timmit147/timmit147.github.io/contents/json/colors.json`; // Replace with your GitHub repository path
+                const updateUrl = `https://api.github.com/repos/timmit147/json/contents/colors.json`; // GitHub repository path for colors.json
                 const updateResponse = await fetch(updateUrl, {
                     method: 'PUT',
                     headers: {
