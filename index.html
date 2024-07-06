@@ -3,33 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Colors</title>
+    <title>GitHub Colors CMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+        margin-top: 20px;
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            background-color: #f44336;
+        }
+        .success {
+            background-color: #4CAF50;
+        }
+    </style>
 </head>
 <body>
-    <h1>GitHub Colors</h1>
-    <div>
+    <h1>GitHub Colors CMS</h1>
+    <div class="container">
         <label for="tokenInput">GitHub Personal Access Token:</label>
-        <input type="text" id="tokenInput" placeholder="Enter your token">
-    </div>
-    <button onclick="pushToGitHub()">Push Colors to GitHub</button>
+        <input type="text" id="tokenInput" placeholder="Enter your GitHub token">
+        
+        <label for="colorPicker">Select Color:</label>
+        <input type="text" id="colorPicker" class="colorpicker" />
 
+        <button onclick="pushColor()">Push Color to GitHub</button>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
     <script>
-        async function pushToGitHub() {
-            const colorsUrl = 'https://raw.githubusercontent.com/timmit147/json/main/colors.json'; // URL of the raw colors.json file
+        $(document).ready(function() {
+            $('#colorPicker').spectrum({
+                preferredFormat: "hex",
+                showInput: true,
+                showAlpha: false,
+                showPalette: true,
+                palette: [
+                    ['#f00', '#0f0', '#00f'], // Red, Green, Blue
+                    ['#000', '#fff', '#ff0'] // Black, White, Yellow
+                ]
+            });
+        });
+
+        async function pushColor() {
             const githubToken = document.getElementById('tokenInput').value.trim(); // Get token from input field
+            const colorValue = $('#colorPicker').spectrum('get').toHexString();
 
             if (!githubToken) {
-                alert('Please enter your GitHub token.');
+                showMessage('error', 'Please enter your GitHub token.');
+                return;
+            }
+
+            if (!colorValue) {
+                showMessage('error', 'Please select a color.');
                 return;
             }
 
             try {
                 // Step 1: Fetch current colors.json content from GitHub repository
+                const colorsUrl = 'https://raw.githubusercontent.com/timmit147/json/main/colors.json'; // URL of the raw colors.json file
                 const response = await fetch(colorsUrl);
-                const colors = await response.json();
+                const currentColors = await response.json();
 
-                // Example: Modify or update colors array
-                const updatedColors = [...colors, { color: "white", value: "#fff" }];
+                // Prepare updated colors array with the new color
+                const updatedColors = [...currentColors, { "color": "Custom Color", "value": colorValue }];
 
                 // Step 2: Fetch SHA of the current colors.json file
                 const shaResponse = await fetch(`https://api.github.com/repos/timmit147/json/contents/colors.json`, {
@@ -69,11 +153,17 @@
 
                 const result = await updateResponse.json();
                 console.log('File updated successfully:', result);
-                alert('Colors updated successfully!');
+                showMessage('success', 'Color added and updated successfully!');
             } catch (error) {
                 console.error('Error updating colors:', error);
-                alert('Error updating colors: ' + error.message);
+                showMessage('error', 'Error updating colors: ' + error.message);
             }
+        }
+
+        function showMessage(type, message) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
         }
     </script>
 </body>
